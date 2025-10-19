@@ -18,6 +18,7 @@
 import os
 import sys
 import numpy as np
+import zlib
 import math
 import cv2
 import matplotlib.pyplot as plt
