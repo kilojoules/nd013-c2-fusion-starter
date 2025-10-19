@@ -39,15 +39,29 @@ def show_pcl(pcl):
     #######
     print("student task ID_S1_EX2")
 
-    # 1. Create a point cloud object
+    #show_range_image step 1 : initialize open3d with key callback and create window
+    # The visualizer object is created only once and stored as a static variable
+    if not hasattr(show_pcl, "vis"):
+        show_pcl.vis = o3d.visualization.VisualizerWithKeyCallback()
+        show_pcl.vis.create_window()
+        show_pcl.is_initialized = False
+
+    # step 2 : create instance of open3d point-cloud class
     pcd = o3d.geometry.PointCloud()
-    
-    # 2. Assign the points from your numpy array
+
+    # step 3 : set points in pcd instance by converting the point-cloud into 3d vectors
     pcd.points = o3d.utility.Vector3dVector(pcl[:, :3])
+
+    # step 4 : for the first frame, add the pcd instance to visualization; for all other frames, update geometry
+    if not show_pcl.is_initialized:
+        show_pcl.vis.add_geometry(pcd)
+        show_pcl.is_initialized = True
+    else:
+        show_pcl.vis.update_geometry(pcd)
     
-    # 3. Visualize and block execution until the window is closed
-    print("Displaying point cloud. Close the window to allow the script to continue.")
-    o3d.visualization.draw_geometries([pcd])
+    # step 5 : visualize point cloud and keep window open
+    show_pcl.vis.poll_events()
+    show_pcl.vis.update_renderer()
 
     # step 1 : initialize open3d with key callback and create window
     
