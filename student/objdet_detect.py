@@ -18,7 +18,6 @@ from easydict import EasyDict as edict
 import requests
 from tqdm import tqdm
 
-import gdown
 # add project directory to python path to enable relative imports
 import os
 import sys
@@ -34,11 +33,57 @@ from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darkne
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
 def download_file(url, destination):
-    """Downloads a file from a Google Drive URL."""
-    print(f"Model file not found. Downloading using gdown...")
-    # gdown handles all the complexities of Google Drive downloads
-    gdown.download(url, destination, quiet=False)
-    print(f"Model downloaded successfully to {destination}")
+    """
+    Downloads a large file from a Google Drive URL, correctly handling the 
+    security warning and confirmation step.
+    """
+    print(f"Model file not found. Attempting to download from Google Drive...")
+    
+    session = requests.Session()  # Use a session to persist cookies
+
+    try:
+        # Initial request to get the page and the download_warning cookie
+        response = session.get(url, stream=True)
+        token = None
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                token = value
+                break
+        
+        # If a confirmation token is found, make a second request with it
+        if token:
+            params = {'id': url.split('id=')[-1], 'confirm': token}
+            response = session.get(url, params=params, stream=True)
+
+        # Check if the download is valid
+        content_type = response.headers.get('content-type', '')
+        if 'text/html' in content_type:
+            print("ERROR: Download failed. Received an HTML page instead of the file.")
+            print("This can happen if the Google Drive link is invalid or requires login.")
+            sys.exit(1)
+
+        # Download the file with a progress bar
+        total_size = int(response.headers.get('content-length', 0))
+        block_size = 1024  # 1 KB
+
+        with tqdm(total=total_size, unit='B', unit_scale=True, desc="Downloading model") as progress_bar:
+            with open(destination, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=block_size):
+                    if chunk:
+                        progress_bar.update(len(chunk))
+                        f.write(chunk)
+        
+        if total_size != 0 and progress_bar.n != total_size:
+            raise IOError("ERROR: Download incomplete.")
+
+        print(f"Model downloaded successfully to {destination}")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        # Clean up partial file if it exists
+        if os.path.exists(destination):
+            os.remove(destination)
+        sys.exit(1)
 
 # load model-related parameters into an edict
 def load_configs_model(model_name='darknet', configs=None):
