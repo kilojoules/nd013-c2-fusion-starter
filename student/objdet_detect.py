@@ -36,15 +36,9 @@ from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v
 def download_file(url, destination):
     """Downloads a file from a Google Drive URL."""
     print(f"Model file not found. Downloading using gdown...")
-    try:
-        # gdown handles all the complexities of Google Drive downloads
-        gdown.download(url, destination, quiet=False)
-        print(f"Model downloaded successfully to {destination}")
-    except Exception as e:
-        print(f"Error downloading the file with gdown: {e}")
-        if os.path.exists(destination):
-            os.remove(destination) # Clean up partial file
-        sys.exit(1)
+    # gdown handles all the complexities of Google Drive downloads
+    gdown.download(url, destination, quiet=False)
+    print(f"Model downloaded successfully to {destination}")
 
 # load model-related parameters into an edict
 def load_configs_model(model_name='darknet', configs=None):
