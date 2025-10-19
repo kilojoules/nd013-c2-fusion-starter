@@ -32,38 +32,39 @@ from tools.objdet_models.resnet.utils.evaluation_utils import decode, post_proce
 from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darknet
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
-import os
-import sys
-
 def download_file(url, destination):
     """
-    Downloads a large file from a Google Drive link, handling the security warning.
+    Downloads a large file from a Google Drive link, correctly handling the security warning.
     """
-    print(f"Model file not found. Attempting to download from Google Drive...")
+    print(f"Model file not found. Attempting to download from {url}...")
 
     session = requests.Session() # Use a session to keep cookies
 
     try:
         # First request to get the download confirmation token
-        response = session.get(url, stream=True)
+        response = session.get(url, params={'id': url.split('id=')[-1]}, stream=True)
         token = None
         for key, value in response.cookies.items():
             if key.startswith('download_warning'):
                 token = value
 
-        # If a token was found, make the second request with the token
+        # If a token was found, make the second request with the confirmation
         if token:
             params = {'id': url.split('id=')[-1], 'confirm': token}
             response = session.get(url, params=params, stream=True)
 
-        # Now, download the file with a progress bar
+        # Now, download the file content with a progress bar
         total_size_in_bytes = int(response.headers.get('content-length', 0))
         block_size = 1024  # 1 KB
 
+        if total_size_in_bytes < 10000: # If the file is still tiny, it's the error page
+            print("ERROR: Download failed. The file is too small. It's likely a Google Drive error page.")
+            sys.exit(1)
+
         progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc="Downloading model")
         with open(destination, 'wb') as f:
-            for chunk in response.iter_content(block_size):
-                if chunk: # filter out keep-alive new chunks
+            for chunk in response.iter_content(chunk_size=block_size):
+                if chunk:
                     progress_bar.update(len(chunk))
                     f.write(chunk)
         progress_bar.close()
@@ -71,7 +72,6 @@ def download_file(url, destination):
         if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
             print("ERROR: Download failed. File might be incomplete.")
             os.remove(destination) # Clean up partial file
-            sys.exit(1)
         else:
             print(f"Model downloaded successfully to {destination}")
 
