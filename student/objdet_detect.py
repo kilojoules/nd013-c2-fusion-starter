@@ -177,11 +177,22 @@ def create_model(configs):
         model = darknet(cfgfile=configs.cfgfile, use_giou_loss=configs.use_giou_loss)    
     
     elif 'fpn_resnet' in configs.arch:
-        print('using ResNet architecture with feature pyramid')
         
         ####### ID_S3_EX1-4 START #######     
         #######
+        print('using ResNet architecture with feature pyramid')
+        
+        ####### ID_S3_EX1-4 START #######
+        #######
         print("student task ID_S3_EX1-4")
+
+        # Create the model using the factory function 'get_pose_net'
+        model = fpn_resnet.get_pose_net(
+            num_layers=configs.num_layers, 
+            heads=configs.heads, 
+            head_conv=configs.head_conv,
+            imagenet_pretrained=True
+        )
 
         #######
         ####### ID_S3_EX1-4 END #######     
