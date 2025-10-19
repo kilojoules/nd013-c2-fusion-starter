@@ -15,18 +15,12 @@ import numpy as np
 import torch
 from easydict import EasyDict as edict
 
-import requests
-from tqdm import tqdm
-
 # add project directory to python path to enable relative imports
 import os
 import sys
 PACKAGE_PARENT = '..'
 SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
 sys.path.append(os.path.normpath(os.path.join(SCRIPT_DIR, PACKAGE_PARENT)))
-
-import subprocess
-import shutil 
 
 # model-related
 from tools.objdet_models.resnet.models import fpn_resnet
@@ -35,36 +29,6 @@ from tools.objdet_models.resnet.utils.evaluation_utils import decode, post_proce
 from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darknet
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
-def download_file(url, destination):
-    """Downloads a file using the system's wget command."""
-    print(f"Model file not found. Attempting to download using wget...")
-
-    # Check if wget is installed
-    if not shutil.which('wget'):
-        print("ERROR: wget is not installed. Please install it to download the model.")
-        sys.exit(1)
-
-    # Construct the wget command
-    # Note: The URL is wrapped in quotes to handle special characters
-    command = ['wget', '-O', destination, '--no-check-certificate', url]
-
-    try:
-        # Execute the command
-        print(f"Running command: {' '.join(command)}")
-        subprocess.run(command, check=True)
-
-        # Verify the download by checking file size
-        if os.path.getsize(destination) < 1024 * 1024: # Less than 1MB is definitely wrong
-            raise ValueError("Downloaded file is too small. It's likely an error page.")
-
-        print(f"Model downloaded successfully to {destination}")
-
-    except (subprocess.CalledProcessError, ValueError) as e:
-        print(f"Error during wget download: {e}")
-        # Clean up the failed download
-        if os.path.exists(destination):
-            os.remove(destination)
-        sys.exit(1)
 # load model-related parameters into an edict
 def load_configs_model(model_name='darknet', configs=None):
 
@@ -162,19 +126,6 @@ def load_configs(model_name='fpn_resnet', configs=None):
 
 # create model according to selected model type
 def create_model(configs):
-
-    if 'fpn_resnet' in configs.arch:
-        model_url = "https://drive.google.com/uc?export=download&id=1RcEfUIF1pzDZco8PJkZ10OL-wLL2usEj"
-    elif 'darknet' in configs.arch:
-        model_url = "https://drive.google.com/uc?export=download&id=1Pqx7sShlqKSGmvshTYbNDcUEYyZwfn3A"
-    else:
-        model_url = None
-
-    # Check if the pretrained model file exists, and download it if it doesn't
-    if model_url and not os.path.isfile(configs.pretrained_filename):
-        # Create the directory if it doesn't exist
-        os.makedirs(os.path.dirname(configs.pretrained_filename), exist_ok=True)
-        download_file(model_url, configs.pretrained_filename)
 
     # check for availability of model file
     assert os.path.isfile(configs.pretrained_filename), "No file at {}".format(configs.pretrained_filename)
