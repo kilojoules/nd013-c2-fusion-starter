@@ -13,6 +13,7 @@
 # general package imports
 import cv2
 import numpy as np
+import zlib
 import torch
 
 # add project directory to python path to enable relative imports
