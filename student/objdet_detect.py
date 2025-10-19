@@ -32,14 +32,16 @@ from tools.objdet_models.resnet.utils.evaluation_utils import decode, post_proce
 from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darknet
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
+import os
+import sys
+
 def download_file(url, destination):
     """
     Downloads a large file from a Google Drive link, handling the security warning.
     """
     print(f"Model file not found. Attempting to download from Google Drive...")
-    
-    # Use a session object to keep cookies
-    session = requests.Session()
+
+    session = requests.Session() # Use a session to keep cookies
 
     try:
         # First request to get the download confirmation token
@@ -48,7 +50,7 @@ def download_file(url, destination):
         for key, value in response.cookies.items():
             if key.startswith('download_warning'):
                 token = value
-        
+
         # If a token was found, make the second request with the token
         if token:
             params = {'id': url.split('id=')[-1], 'confirm': token}
@@ -69,6 +71,7 @@ def download_file(url, destination):
         if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
             print("ERROR: Download failed. File might be incomplete.")
             os.remove(destination) # Clean up partial file
+            sys.exit(1)
         else:
             print(f"Model downloaded successfully to {destination}")
 
@@ -77,7 +80,6 @@ def download_file(url, destination):
         if os.path.exists(destination):
             os.remove(destination) # Clean up partial file
         sys.exit(1)
-
 # load model-related parameters into an edict
 def load_configs_model(model_name='darknet', configs=None):
 
