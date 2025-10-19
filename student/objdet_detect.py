@@ -18,6 +18,7 @@ from easydict import EasyDict as edict
 import requests
 from tqdm import tqdm
 
+import gdown
 # add project directory to python path to enable relative imports
 import os
 import sys
@@ -33,53 +34,18 @@ from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darkne
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
 def download_file(url, destination):
-    """
-    Downloads a large file from a Google Drive link, correctly handling the security warning.
-    """
-    print(f"Model file not found. Attempting to download from {url}...")
-
-    session = requests.Session() # Use a session to keep cookies
-
+    """Downloads a file from a Google Drive URL."""
+    print(f"Model file not found. Downloading using gdown...")
     try:
-        # First request to get the download confirmation token
-        response = session.get(url, params={'id': url.split('id=')[-1]}, stream=True)
-        token = None
-        for key, value in response.cookies.items():
-            if key.startswith('download_warning'):
-                token = value
-
-        # If a token was found, make the second request with the confirmation
-        if token:
-            params = {'id': url.split('id=')[-1], 'confirm': token}
-            response = session.get(url, params=params, stream=True)
-
-        # Now, download the file content with a progress bar
-        total_size_in_bytes = int(response.headers.get('content-length', 0))
-        block_size = 1024  # 1 KB
-
-        if total_size_in_bytes < 10000: # If the file is still tiny, it's the error page
-            print("ERROR: Download failed. The file is too small. It's likely a Google Drive error page.")
-            sys.exit(1)
-
-        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc="Downloading model")
-        with open(destination, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=block_size):
-                if chunk:
-                    progress_bar.update(len(chunk))
-                    f.write(chunk)
-        progress_bar.close()
-
-        if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-            print("ERROR: Download failed. File might be incomplete.")
-            os.remove(destination) # Clean up partial file
-        else:
-            print(f"Model downloaded successfully to {destination}")
-
-    except requests.exceptions.RequestException as e:
-        print(f"Error downloading the file: {e}")
+        # gdown handles all the complexities of Google Drive downloads
+        gdown.download(url, destination, quiet=False)
+        print(f"Model downloaded successfully to {destination}")
+    except Exception as e:
+        print(f"Error downloading the file with gdown: {e}")
         if os.path.exists(destination):
             os.remove(destination) # Clean up partial file
         sys.exit(1)
+
 # load model-related parameters into an edict
 def load_configs_model(model_name='darknet', configs=None):
 
