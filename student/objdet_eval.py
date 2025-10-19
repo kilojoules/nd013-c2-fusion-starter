@@ -16,6 +16,7 @@ import matplotlib
 #matplotlib.use('wxagg') # change backend so that figure maximizing works on Mac as well     
 import matplotlib.pyplot as plt
 
+import zlib
 import torch
 from shapely.geometry import Polygon
 from operator import itemgetter
