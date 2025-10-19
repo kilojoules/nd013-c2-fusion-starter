@@ -15,6 +15,9 @@ import numpy as np
 import torch
 from easydict import EasyDict as edict
 
+import requests
+from tqdm import tqdm
+
 # add project directory to python path to enable relative imports
 import os
 import sys
@@ -29,6 +32,30 @@ from tools.objdet_models.resnet.utils.evaluation_utils import decode, post_proce
 from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darknet
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
+def download_file(url, destination):
+    """Downloads a file with a progress bar."""
+    print(f"Model file not found. Downloading from {url}...")
+    try:
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            total_size_in_bytes = int(r.headers.get('content-length', 0))
+            block_size = 1024 # 1 Kibibyte
+            
+            progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc="Downloading model")
+            with open(destination, 'wb') as f:
+                for chunk in r.iter_content(block_size):
+                    progress_bar.update(len(chunk))
+                    f.write(chunk)
+            progress_bar.close()
+
+        if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
+            print("ERROR, something went wrong during download.")
+        else:
+            print(f"Model downloaded successfully to {destination}")
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading the file: {e}")
+        sys.exit(1)
 
 # load model-related parameters into an edict
 def load_configs_model(model_name='darknet', configs=None):
@@ -127,6 +154,19 @@ def load_configs(model_name='fpn_resnet', configs=None):
 
 # create model according to selected model type
 def create_model(configs):
+
+    if 'fpn_resnet' in configs.arch:
+        model_url = "https://drive.google.com/uc?export=download&id=1RcEfUIF1pzDZco8PJkZ10OL-wLL2usEj"
+    elif 'darknet' in configs.arch:
+        model_url = "https://drive.google.com/uc?export=download&id=1Pqx7sShlqKSGmvshTYbNDcUEYyZwfn3A"
+    else:
+        model_url = None
+
+    # Check if the pretrained model file exists, and download it if it doesn't
+    if model_url and not os.path.isfile(configs.pretrained_filename):
+        # Create the directory if it doesn't exist
+        os.makedirs(os.path.dirname(configs.pretrained_filename), exist_ok=True)
+        download_file(model_url, configs.pretrained_filename)
 
     # check for availability of model file
     assert os.path.isfile(configs.pretrained_filename), "No file at {}".format(configs.pretrained_filename)
