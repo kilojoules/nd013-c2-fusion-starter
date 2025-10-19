@@ -33,28 +33,49 @@ from tools.objdet_models.darknet.models.darknet2pytorch import Darknet as darkne
 from tools.objdet_models.darknet.utils.evaluation_utils import post_processing_v2
 
 def download_file(url, destination):
-    """Downloads a file with a progress bar."""
-    print(f"Model file not found. Downloading from {url}...")
+    """
+    Downloads a large file from a Google Drive link, handling the security warning.
+    """
+    print(f"Model file not found. Attempting to download from Google Drive...")
+    
+    # Use a session object to keep cookies
+    session = requests.Session()
+
     try:
-        with requests.get(url, stream=True) as r:
-            r.raise_for_status()
-            total_size_in_bytes = int(r.headers.get('content-length', 0))
-            block_size = 1024 # 1 Kibibyte
-            
-            progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc="Downloading model")
-            with open(destination, 'wb') as f:
-                for chunk in r.iter_content(block_size):
+        # First request to get the download confirmation token
+        response = session.get(url, stream=True)
+        token = None
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                token = value
+        
+        # If a token was found, make the second request with the token
+        if token:
+            params = {'id': url.split('id=')[-1], 'confirm': token}
+            response = session.get(url, params=params, stream=True)
+
+        # Now, download the file with a progress bar
+        total_size_in_bytes = int(response.headers.get('content-length', 0))
+        block_size = 1024  # 1 KB
+
+        progress_bar = tqdm(total=total_size_in_bytes, unit='iB', unit_scale=True, desc="Downloading model")
+        with open(destination, 'wb') as f:
+            for chunk in response.iter_content(block_size):
+                if chunk: # filter out keep-alive new chunks
                     progress_bar.update(len(chunk))
                     f.write(chunk)
-            progress_bar.close()
+        progress_bar.close()
 
         if total_size_in_bytes != 0 and progress_bar.n != total_size_in_bytes:
-            print("ERROR, something went wrong during download.")
+            print("ERROR: Download failed. File might be incomplete.")
+            os.remove(destination) # Clean up partial file
         else:
             print(f"Model downloaded successfully to {destination}")
 
     except requests.exceptions.RequestException as e:
         print(f"Error downloading the file: {e}")
+        if os.path.exists(destination):
+            os.remove(destination) # Clean up partial file
         sys.exit(1)
 
 # load model-related parameters into an edict
