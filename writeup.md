@@ -61,8 +61,12 @@ Below are six examples of vehicles captured from the LiDAR point cloud, demonstr
 
 ## Part 2: Birds Eye View Intensity and Height Maps
 
-Birds eye view (BEV) intensity represents the reflectivity values of lidar returns projected onto a top-down 2D grid. 
+Birds-eye view (BEV) maps transform 3D lidar point clouds into 2D top-down representations for object detection.
 
-The BEV height map shows the elevations detects by the lidar based on the geometry of the sensor and detected reflectino points. 
+**BEV Intensity Map**: Projects lidar reflectivity values onto a 2D grid. For each grid cell, the intensity value of the topmost lidar point is assigned, representing surface material properties (metal appears bright, dark paint appears dim).
 
-![bev_intesity_heights](./figures/bev_intensity_height.png')
+**BEV Height Map**: Projects elevation data (z-coordinates) onto the same 2D grid. Each pixel represents the height above ground of the topmost surface at that location.
+
+Both maps use identical processing: coordinate transformation to BEV space, sorting by height to select topmost points, and normalization to 0-255 range. The combination provides both geometric (height) and material (intensity) information for robust object detection.
+
+![BEV Intensity and Height Maps](./figures/bev_intensity_height.png)
