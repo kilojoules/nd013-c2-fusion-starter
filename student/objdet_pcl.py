@@ -16,6 +16,7 @@ import numpy as np
 import zlib
 import open3d as o3d
 import torch
+import matplotlib.pyplot as plt
 
 # add project directory to python path to enable relative imports
 import os
