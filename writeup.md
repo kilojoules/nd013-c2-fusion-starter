@@ -95,6 +95,13 @@ Detection Head
 3D Bounding Boxes in BEV Space
 
 
-Bounding boxes are defined in terms of (x,y,z) coordinates of the box datum, yaw offset from the direction of the sensing vehicle, and the box width, length, and height, as well as the class of the object being bounded. In this example, we only focous on detected cars An example of this classiciateion is shown below.. 
+Bounding boxes are defined in terms of (x,y,z) coordinates of the box datum, yaw offset from the direction of the sensing vehicle, and the box width, length, and height, as well as the class of the object being bounded. In this example, we only focus on detected cars An example of this classiciateion is shown below. The green boxes are considered confirmed/high-confidence car sightings. The blue boxes are potential car sightings, which are relevant for tracking these objects across multiple frames. 
+
+
+Here are the bounding boxes found in BEV space:
+
+![detected_cars_bev](./figures/detected_cars_bev.png)
+
+And here they are projected in the camera's coordiante system:
 
 ![detected_cars](./figures/detected_cars.png)
