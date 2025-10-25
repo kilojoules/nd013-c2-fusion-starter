@@ -137,6 +137,7 @@ def bev_from_pcl(lidar_pcl, configs):
     print("student task ID_S2_EX2")
 
     ## step 1 : create a numpy array filled with zeros which has the same dimensions as the BEV map
+    
     intensity_map = np.zeros((configs.bev_height, configs.bev_width))
 
     # step 2 : re-arrange elements in lidar_pcl_cpy by sorting first by x, then y, then -z (use numpy.lexsort)
@@ -167,10 +168,16 @@ def bev_from_pcl(lidar_pcl, configs):
 
     ## step 1 : create a numpy array filled with zeros which has the same dimensions as the BEV map
     height_map = np.zeros((configs.bev_height, configs.bev_width))
-
+    
     ## step 2 : assign the height value of each unique entry in lidar_pcl_top to the height map
-    # We normalize the height by the predefined z-limits to scale the values between 0 and 255.
-    height_map[np.int_(lidar_pcl_top[:, 0]), np.int_(lidar_pcl_top[:, 1])] = lidar_pcl_top[:, 2] / float(configs.lim_z[1] - configs.lim_z[0]) * 255
+    # FIRST assign the raw height values (z-coordinates) from lidar_pcl_top
+    height_map[np.int_(lidar_pcl_top[:, 0]), np.int_(lidar_pcl_top[:, 1])] = lidar_pcl_top[:, 2]
+    
+    ## step 3 : normalize the height map using the difference between max and min height
+    # THEN normalize the entire height map (convert to float before normalizing as mentioned in tips)
+    height_range = float(configs.lim_z[1] - configs.lim_z[0])
+    height_map = height_map / height_range * 255
+    height_map = height_map.astype(np.uint8)
 
     ####### ID_S2_EX3 END #######       
 
