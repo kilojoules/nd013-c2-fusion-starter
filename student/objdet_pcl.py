@@ -138,6 +138,9 @@ def bev_from_pcl(lidar_pcl, configs):
 
     ## step 1 : create a numpy array filled with zeros which has the same dimensions as the BEV map
     
+    bev_height = 200  
+    bev_width = 200   
+
     intensity_map = np.zeros((configs.bev_height, configs.bev_width))
 
     # step 2 : re-arrange elements in lidar_pcl_cpy by sorting first by x, then y, then -z (use numpy.lexsort)
