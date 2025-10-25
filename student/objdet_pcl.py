@@ -192,4 +192,27 @@ def bev_from_pcl(lidar_pcl, configs):
 
     bev_maps = torch.from_numpy(bev_maps) # create tensor from birds-eye view
     input_bev_maps = bev_maps.to(configs.device, non_blocking=True).float()
+
+    # Create intensity heatmap
+    plt.figure(figsize=(15, 5))
+    
+    # Intensity map visualization
+    plt.subplot(1, 2, 1)
+    plt.imshow(intensity_map, cmap='hot', origin='lower')
+    plt.colorbar(label='Intensity Values')
+    plt.title('BEV Intensity Map')
+    plt.xlabel('BEV X Coordinate')
+    plt.ylabel('BEV Y Coordinate')
+    
+    # Height map visualization  
+    plt.subplot(1, 2, 2)
+    plt.imshow(height_map, cmap='viridis', origin='lower')
+    plt.colorbar(label='Height Values')
+    plt.title('BEV Height Map')
+    plt.xlabel('BEV X Coordinate')
+    plt.ylabel('BEV Y Coordinate')
+    
+    plt.tight_layout()
+    plt.show()
+
     return input_bev_maps
