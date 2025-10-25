@@ -70,3 +70,31 @@ Birds-eye view (BEV) maps transform 3D lidar point clouds into 2D top-down repre
 Both maps use identical processing: coordinate transformation to BEV space, sorting by height to select topmost points, and normalization to 0-255 range. The combination provides both geometric (height) and material (intensity) information for robust object detection.
 
 ![BEV Intensity and Height Maps](./figures/bev_intensity_height.png)
+
+## Part 3: Model-based Object Detection
+
+We apply an object detection and classification model to the BEV data. This model is a CNN Feature Pyramid Network with a Resnet backbone. This facilitates multi-scale detection.
+
+The model expects three BEV channels: intensity, height, and point density. 
+
+The data workflow is the following:
+
+Lidar Point Cloud (3D)
+    ↓
+BEV Coordinate Transform  
+    ↓
+3-Channel BEV Map (2D Image)
+[Intensity | Height | Density]
+    ↓
+CNN (FPN + ResNet)
+    ↓
+Feature Maps at Multiple Scales
+    ↓
+Detection Head
+    ↓
+3D Bounding Boxes in BEV Space
+
+
+Bounding boxes are defined in terms of (x,y,z) coordinates of the box datum, yaw offset from the direction of the sensing vehicle, and the box width, length, and height, as well as the class of the object being bounded. In this example, we only focous on detected cars An example of this classiciateion is shown below.. 
+
+![detected_cars](./figures/detected_cars.png)
