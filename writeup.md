@@ -59,3 +59,10 @@ Below are six examples of vehicles captured from the LiDAR point cloud, demonstr
 *The car wheel geometry is particularly prominant in this close scan*
 
 
+## Part 2: Birds Eye View Intensity and Height Maps
+
+Birds eye view (BEV) intensity represents the reflectivity values of lidar returns projected onto a top-down 2D grid. 
+
+The BEV height map shows the elevations detects by the lidar based on the geometry of the sensor and detected reflectino points. 
+
+![bev_intesity_heights](./figures/bev_intensity_height.png')
