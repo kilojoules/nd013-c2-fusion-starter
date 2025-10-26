@@ -34,69 +34,69 @@ import misc.objdet_tools as tools
 
 # compute various performance measures to assess object detection
 def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5):
-    
-     # find best detection for each valid label 
-    true_positives = 0 # no. of correctly detected objects
+
+    # find best detection for each valid label
+    true_positives = 0  # no. of correctly detected objects
     center_devs = []
     ious = []
+    
+    # Create a set of detection indices that have been matched to a label
+    matched_detection_indices = set()
+
     for label, valid in zip(labels, labels_valid):
         matches_lab_det = []
-        if valid: # exclude all labels from statistics which are not considered valid
-            
-            # compute intersection over union (iou) and distance between centers
+        if valid:  # exclude all labels from statistics which are not considered valid
 
-            ####### ID_S4_EX1 START #######     
-            #######
-
-            print("student task ID_S4_EX1 ")
-
-            ## step 1 : extract the four corners of the current label bounding-box
+            # Step 1: Extract the four corners of the current label bounding-box
             lab_corners = tools.compute_box_corners(label.box.center_x, label.box.center_y, label.box.width, label.box.length, label.box.heading)
             lab_poly = Polygon(lab_corners)
 
-            ## step 2 : loop over all detected objects
+            # Step 2: Loop over all detected objects
             for det_idx, det in enumerate(detections):
-                # det format: [1, x, y, z, h, w, l, yaw]
+                # det format: [class_id, x, y, z, h, w, l, yaw]
                 _ , x, y, z, h, w, l, yaw = det
-                
-                ## step 3 : extract the four corners of the current detection
+
+                # Step 3: Extract the four corners of the current detection
                 det_corners = tools.compute_box_corners(x, y, w, l, yaw)
                 det_poly = Polygon(det_corners)
 
-                ## step 4 : compute the center distance between label and detection bounding-box in x, y, and z
+                # Step 4: Compute the center distance
                 dist_x = label.box.center_x - x
                 dist_y = label.box.center_y - y
                 dist_z = label.box.center_z - z
 
-                ## step 5 : compute the intersection over union (IOU) between label and detection bounding-box
+                # Step 5: Compute the intersection over union (IOU)
                 intersection = lab_poly.intersection(det_poly).area
-                union = lab_poly.union(det_poly).area
+                union = lab_poly.area + det_poly.area - intersection
                 iou = intersection / union if union > 0 else 0
 
-                ## step 6 : if IOU exceeds min_iou threshold, store [iou, dist_x, dist_y, dist_z, det_idx] in matches_lab_det
+                # Step 6: If IOU exceeds min_iou threshold, store match
                 if iou > min_iou:
                     matches_lab_det.append([iou, dist_x, dist_y, dist_z, det_idx])
-            ## step 1 : extract the four corners of the current label bounding-box
-            
-            ## step 2 : loop over all detected objects
 
-                ## step 3 : extract the four corners of the current detection
-                
-                ## step 4 : computer the center distance between label and detection bounding-box in x, y, and z
-                
-                ## step 5 : compute the intersection over union (IOU) between label and detection bounding-box
-                
-                ## step 6 : if IOU exceeds min_iou threshold, store [iou,dist_x, dist_y, dist_z] in matches_lab_det and increase the TP count
-                
-            #######
-            ####### ID_S4_EX1 END #######     
-            
-        # find best match and compute metrics
+        # Find best match and compute metrics for the current label
         if matches_lab_det:
-            true_positives += 1
-            best_match = max(matches_lab_det,key=itemgetter(0)) # retrieve entry with max iou in case of multiple candidates   
+            # Sort matches by IoU in descending order
+            best_match = max(matches_lab_det, key=itemgetter(0))
+            
+            # Add the index of the matched detection to our set
+            matched_detection_indices.add(best_match[4])
+            
             ious.append(best_match[0])
-            center_devs.append(best_match[1:4])
+            center_devs.append(best_match[1:4]) # Correctly slice the 3 distance values
+
+    # A True Positive is a unique detection that matches a valid label
+    true_positives = len(matched_detection_indices)
+    
+    # --- Performance Metrics (ID_S4_EX2) ---
+    all_positives = np.sum(labels_valid)
+    false_negatives = all_positives - true_positives
+    false_positives = len(detections) - true_positives
+    
+    pos_negs = [all_positives, true_positives, false_negatives, false_positives]
+    det_performance = [ious, center_devs, pos_negs]
+    
+    return det_performance
 
 
     ####### ID_S4_EX2 START #######     
