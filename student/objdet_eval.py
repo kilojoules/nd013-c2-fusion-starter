@@ -95,6 +95,8 @@ def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5)
     
     pos_negs = [all_positives, true_positives, false_negatives, false_positives]
     det_performance = [ious, center_devs, pos_negs]
+    print('ious:', ious)
+    print('center_devs:', center_devs)
     
     return det_performance
 
