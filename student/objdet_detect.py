@@ -225,7 +225,10 @@ def detect_objects(input_bev_maps, model, configs):
     if len(detections) > 0:
         ## step 2 : loop over all detections
         for obj in detections:
-            _ , bev_x, bev_y, z, h, w, l, yaw = obj
+            # For resnet: _, bev_x, bev_y, z, h, w, l, yaw = obj
+            # For darknet: cls_pred, bev_x, bev_y, z, h, w, l, yaw = obj
+            # We can use slicing to handle both cases
+            bev_x, bev_y, z, h, w, l, yaw = obj[1:8]
             
             ## step 3 : perform the conversion from BEV coordinates to metric coordinates
             x = bev_y / configs.bev_height * (configs.lim_x[1] - configs.lim_x[0])
