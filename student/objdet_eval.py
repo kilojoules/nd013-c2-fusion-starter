@@ -35,6 +35,13 @@ import misc.objdet_tools as tools
 # compute various performance measures to assess object detection
 def measure_detection_performance(detections, labels, labels_valid, min_iou=0.5):
 
+    print("\nPROBE 2: Ground-Truth Labels (Metric Coords):")
+    for label, valid in zip(labels, labels_valid):
+        if valid:
+            box = label.box
+            print(f"x={box.center_x:.2f}m, y={box.center_y:.2f}m, w={box.width:.2f}m, l={box.length:.2f}m")
+            break # Just print the first valid one
+
     # find best detection for each valid label
     true_positives = 0  # no. of correctly detected objects
     center_devs = []
